@@ -17,8 +17,13 @@ jobs:
         node-version: 20
         cache: 'npm'
     
+    - name: Clear npm cache
+      run: npm cache clean --force
+    
     - name: Install dependencies
-      run: npm install
+      run: |
+        npm install esbuild@0.19.2
+        npm install
     
     - name: Build project
       run: npm run build
