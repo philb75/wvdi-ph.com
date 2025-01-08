@@ -1,17 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/', // Use '/' for GitHub Pages or custom domain root deployment
   server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        secure: false
-      }
-    }
+    proxy: process.env.NODE_ENV === 'production'
+      ? undefined // No proxy for production
+      : {
+          '/api': {
+            target: 'http://localhost:3001',
+            changeOrigin: true,
+            secure: false,
+          },
+        },
   },
   build: {
     outDir: 'dist',
@@ -19,8 +21,8 @@ export default defineConfig({
       output: {
         entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/[name].[ext]'
-      }
-    }
-  }
-})
+        assetFileNames: 'assets/[name].[ext]',
+      },
+    },
+  },
+});
