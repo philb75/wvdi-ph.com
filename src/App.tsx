@@ -1,4 +1,3 @@
-import React from 'react';
 import Navbar from './components/Navbar';
 import CourseCard from './components/CourseCard';
 import TestimonialCard from './components/TestimonialCard';
@@ -6,14 +5,12 @@ import ChatWidget from './components/ChatWidget';
 import { 
   Car,
   Truck,
-  Motorcycle,
   GraduationCap,
   Clock,
   FileCheck,
   Phone,
   Mail,
-  MapPin,
-  Calendar
+  MapPin
 } from 'lucide-react';
 
 function App() {

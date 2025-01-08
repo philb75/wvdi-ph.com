@@ -14,7 +14,6 @@ export default function ChatWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inactivityTimeoutRef = useRef<NodeJS.Timeout>();
   
   const openai = new OpenAI({
     apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
