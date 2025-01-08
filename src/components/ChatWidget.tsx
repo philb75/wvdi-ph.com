@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import OpenAI from 'openai';
+import type { MessageContent } from 'openai/resources/beta/threads/messages';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -33,8 +34,6 @@ export default function ChatWidget() {
   }, [messages]);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
     if (isOpen) {
       const checkInactivity = () => {
         const currentTime = Date.now();
@@ -44,11 +43,11 @@ export default function ChatWidget() {
         if (inactiveTime >= fiveMinutes) {
           setIsOpen(false);
         } else {
-          timeoutId = setTimeout(checkInactivity, 1000);
+          setTimeout(checkInactivity, 1000);
         }
       };
 
-      timeoutId = setTimeout(checkInactivity, 1000);
+      const timeoutId = setTimeout(checkInactivity, 1000);
 
       return () => {
         clearTimeout(timeoutId);
@@ -67,19 +66,43 @@ export default function ChatWidget() {
     setIsLoading(true);
 
     try {
-      const chatCompletion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          ...messages.map(m => ({ role: m.role, content: m.content })),
-          { role: 'user', content: input }
-        ],
-        temperature: 0.7,
-        max_tokens: 500
+      const run = await openai.beta.threads.createAndRun({
+        assistant_id: 'asst_IlhY3tI0oL6GoK3Shn7RJKQT',
+        thread: {
+          messages: [
+            ...messages.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: input }
+          ]
+        }
       });
 
+      // Wait for the run to complete
+      let runStatus = await openai.beta.threads.runs.retrieve(
+        run.thread_id,
+        run.id
+      );
+
+      while (runStatus.status !== 'completed') {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        runStatus = await openai.beta.threads.runs.retrieve(
+          run.thread_id,
+          run.id
+        );
+      }
+
+      // Get the assistant's messages
+      const threadMessages = await openai.beta.threads.messages.list(
+        run.thread_id
+      );
+
+      // Find the first text content in the assistant's response
+      const assistantContent = threadMessages.data[0].content.find(
+        (content): content is Extract<MessageContent, { type: 'text' }> => content.type === 'text'
+      );
+      
       const assistantMessage = {
         role: 'assistant' as const,
-        content: chatCompletion.choices[0].message.content || 'Sorry, I could not process your request.'
+        content: assistantContent?.text?.value || 'Sorry, I could not process your request.'
       };
       
       setMessages(prev => [...prev, assistantMessage]);
@@ -109,7 +132,7 @@ export default function ChatWidget() {
       {!isOpen && (
         <button
           onClick={handleChatOpen}
-          className="bg-red-600 text-white p-4 rounded-full shadow-lg hover:bg-red-700 transition-colors"
+          className="bg-[#9a0606] text-white p-4 rounded-full shadow-lg hover:bg-[#7a0505] transition-colors"
           aria-label="Open chat"
         >
           <MessageCircle className="h-6 w-6" />
@@ -122,8 +145,8 @@ export default function ChatWidget() {
           onMouseMove={updateLastActivity}
           onKeyDown={updateLastActivity}
         >
-          <div className="p-4 bg-red-600 text-white rounded-t-lg flex justify-between items-center">
-            <h3 className="font-semibold">Chat with Wheelie</h3>
+          <div className="p-4 bg-[#9a0606] text-[#ffffff] rounded-t-lg flex justify-between items-center">
+            <h3 className="font-semibold text-[#ffffff]">Chat with DriveBot</h3>
             <button
               onClick={() => setIsOpen(false)}
               className="text-white hover:text-gray-200 transition-colors"
@@ -136,7 +159,7 @@ export default function ChatWidget() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 mt-4">
-                👋 Hi! I'm Wheelie, your driving school assistant. How can I help you today?
+                👋 Hi! I'm DriveBot, your driving school assistant. How can I help you today?
               </div>
             )}
             {messages.map((message, index) => (
@@ -147,7 +170,7 @@ export default function ChatWidget() {
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-red-600 text-white'
+                      ? 'bg-[#9a0606] text-white'
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
@@ -171,7 +194,7 @@ export default function ChatWidget() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="bg-[#9a0606] text-white p-2 rounded-md hover:bg-[#7a0505] transition-colors disabled:opacity-50"
                 aria-label="Send message"
               >
                 {isLoading ? (

@@ -6,11 +6,11 @@ import {
   Car,
   Truck,
   GraduationCap,
-  Clock,
   FileCheck,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Clock
 } from 'lucide-react';
 
 function App() {
