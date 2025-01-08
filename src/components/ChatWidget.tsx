@@ -8,6 +8,12 @@ interface Message {
   content: string;
 }
 
+const apiUrl = process.env.NODE_ENV === 'production'
+  ? 'https://wvdi-ph.com/api'
+  : 'http://localhost:3001/api';
+
+// Use `apiUrl` for making API requests
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -210,3 +216,9 @@ export default function ChatWidget() {
     </div>
   );
 }
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Update with your GitHub Pages domain if needed
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
