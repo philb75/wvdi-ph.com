@@ -1,10 +1,17 @@
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { writeFileSync } from 'fs';
 import path from 'path';
 
+const writeCName: Plugin = {
+  name: 'write-cname',
+  closeBundle() {
+    writeFileSync(path.resolve(__dirname, 'dist/CNAME'), 'wvdi-ph.com');
+  },
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), writeCName],
   base: '/',
   build: {
     outDir: 'dist',
@@ -16,11 +23,4 @@ export default defineConfig({
       },
     },
   },
-  // Hook to write CNAME during build
-  buildEnd() {
-    if (process.env.NODE_ENV === 'production') {
-      writeFileSync(path.resolve(__dirname, 'dist/CNAME'), 'wvdi-ph.com');
-    }
-  },
 });
-

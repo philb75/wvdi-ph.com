@@ -1,4 +1,4 @@
-
+import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 
 interface Message {
@@ -6,17 +6,17 @@ interface Message {
   content: string;
 }
 
-const apiUrl = process.env.NODE_ENV === 'production'
+const apiUrl = import.meta.env.MODE === 'production'
   ? 'https://wvdi-ph.com/api'
   : 'http://localhost:3001/api';
 
 // Use `apiUrl` for making API requests
 
 export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [input, setInput] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -88,7 +88,7 @@ export default function ChatWidget() {
         {
           role: 'assistant',
           content: 'Sorry, I encountered an error. Please try again later.'
-        } as Message
+        }
       ]);
     } finally {
       setIsLoading(false);
