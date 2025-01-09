@@ -28,7 +28,7 @@ jobs:
     - name: Build project
       run: npm run build
       env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
     
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4

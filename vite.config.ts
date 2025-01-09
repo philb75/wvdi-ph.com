@@ -1,20 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { writeFileSync } from 'fs';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/', // Use '/' for GitHub Pages or custom domain root deployment
-  server: {
-    proxy: process.env.NODE_ENV === 'production'
-      ? undefined // No proxy for production
-      : {
-          '/api': {
-            target: 'http://localhost:3001',
-            changeOrigin: true,
-            secure: false,
-          },
-        },
-  },
+  base: '/',
   build: {
     outDir: 'dist',
     rollupOptions: {
@@ -25,4 +16,11 @@ export default defineConfig({
       },
     },
   },
+  // Hook to write CNAME during build
+  buildEnd() {
+    if (process.env.NODE_ENV === 'production') {
+      writeFileSync(path.resolve(__dirname, 'dist/CNAME'), 'wvdi-ph.com');
+    }
+  },
 });
+
