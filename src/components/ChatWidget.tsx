@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
-import OpenAI from 'openai';
-import type { MessageContent } from 'openai/resources/beta/threads/messages';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -21,11 +19,6 @@ export default function ChatWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  const openai = new OpenAI({
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-    dangerouslyAllowBrowser: true
-  });
 
   const updateLastActivity = () => {
     setLastActivity(Date.now());
@@ -66,58 +59,37 @@ export default function ChatWidget() {
     updateLastActivity();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: 'user' as const, content: input };
+    const userMessage: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const run = await openai.beta.threads.createAndRun({
-        assistant_id: 'asst_IlhY3tI0oL6GoK3Shn7RJKQT',
-        thread: {
-          messages: [
-            ...messages.map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: input }
-          ]
-        }
+      const response = await fetch(`${apiUrl}/test-openai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMessage]
+        })
       });
 
-      // Wait for the run to complete
-      let runStatus = await openai.beta.threads.runs.retrieve(
-        run.thread_id,
-        run.id
-      );
+      const data = await response.json();
 
-      while (runStatus.status !== 'completed') {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        runStatus = await openai.beta.threads.runs.retrieve(
-          run.thread_id,
-          run.id
-        );
-      }
-
-      // Get the assistant's messages
-      const threadMessages = await openai.beta.threads.messages.list(
-        run.thread_id
-      );
-
-      // Find the first text content in the assistant's response
-      const assistantContent = threadMessages.data[0].content.find(
-        (content): content is Extract<MessageContent, { type: 'text' }> => content.type === 'text'
-      );
-      
-      const assistantMessage = {
-        role: 'assistant' as const,
-        content: assistantContent?.text?.value || 'Sorry, I could not process your request.'
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.reply || 'Sorry, I could not process your request.'
       };
-      
+
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again later.'
-      }]);
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again later.'
+        } as Message
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -146,7 +118,7 @@ export default function ChatWidget() {
       )}
 
       {isOpen && (
-        <div 
+        <div
           className="bg-white rounded-lg shadow-xl w-[90vw] sm:w-96 h-[80vh] sm:h-[500px] flex flex-col"
           onMouseMove={updateLastActivity}
           onKeyDown={updateLastActivity}
@@ -171,7 +143,9 @@ export default function ChatWidget() {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
               >
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
@@ -216,9 +190,3 @@ export default function ChatWidget() {
     </div>
   );
 }
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Update with your GitHub Pages domain if needed
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
