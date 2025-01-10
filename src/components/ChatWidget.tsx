@@ -6,15 +6,12 @@ interface Message {
   content: string;
 }
 
-<<<<<<< HEAD
 const apiUrl = import.meta.env.MODE === 'production'
   ? 'https://wvdi-ph.com/api'
   : 'http://localhost:3001/api';
 
 // Use `apiUrl` for making API requests
 
-=======
->>>>>>> parent of 3a807f3 (Add environment-specific API URL and CORS headers to ChatWidget)
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
