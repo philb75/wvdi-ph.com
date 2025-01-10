@@ -12,7 +12,7 @@ const writeCName: Plugin = {
 
 export default defineConfig({
   plugins: [react(), writeCName],
-  base: '/',
+  base: './',
   build: {
     outDir: 'dist',
     rollupOptions: {
